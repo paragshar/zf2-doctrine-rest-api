@@ -45,8 +45,9 @@ class Base implements InputFilterAwareInterface
 
     public function getInputFilter(){
         if (!$this->inputFilter) {
-            $inputFilter = new InputFilter();
+            $this->inputFilter = new InputFilter();
         }
+        return $this->inputFilter;
     }
 
     /**
@@ -67,7 +68,7 @@ class Base implements InputFilterAwareInterface
         $this->rawdata = $data;
 
         $this->inputFilter->setData($data);
-        if(!$this->getInputFilter()->isValid()){
+        if(!$this->inputFilter->isValid()){
             throw new \Exception("400");
         }else{
             if(!empty($data)){
