@@ -36,7 +36,12 @@ class Module
         }
 
         $response = $e->getResponse();
+
         $exception = $e->getParam('exception');
+        $status = $exception->getCode();
+        if($status == 400)
+            $response->setStatusCode(400);
+
         $exceptionJson = array();
         if ($exception) {
             $exceptionJson = array(
@@ -47,9 +52,12 @@ class Module
                 'stacktrace' => $exception->getTraceAsString()
             );
         }
+        $message = 'An error occurred during execution; please try again later.';
+        if($status == 400)
+            $message = $exception->validationErrors;
 
         $errorJson = array(
-            'message'   => 'An error occurred during execution; please try again later.',
+            'message'   => $message,
             'error'     => $error,
             'exception' => $exceptionJson,
         );

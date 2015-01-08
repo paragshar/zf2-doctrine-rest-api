@@ -55,8 +55,8 @@ class User extends Base
      * @return array
      */
     
-    public function __construct($data){
-        parent::__construct($data);
+    public function __construct($em, $data){
+        parent::__construct($em, $data);
     }
 
     public function getFullName(){
@@ -121,6 +121,31 @@ class User extends Base
                             'max'      => 100,
                         ),
                     ),
+                ),
+            ));
+
+            $inputFilter->add(array(
+                'name'     => 'email',
+                'required' => true,
+                'filters'  => array(
+                    array('name' => 'StripTags'),
+                    array('name' => 'StringTrim'),
+                ),
+                'validators' => array(
+                    array(
+                        'name'    => 'EmailAddress',
+                    ),
+                    array(
+                        'name'  => 'User\Validator\NoEntityExists',
+                        'options'=>array(
+                            'entityManager' =>$this->em,
+                            'class' => 'User\Entity\User',
+                            'property' => 'email',
+                            'exclude' => array(
+                                array('property' => 'id', 'value' => $this->getId())
+                            )
+                        )
+                    )
                 ),
             ));
  

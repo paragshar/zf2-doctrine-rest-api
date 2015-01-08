@@ -43,8 +43,8 @@ class Address extends Base{
      */
     protected $zipcode;
 
-    public function __construct($data){
-        parent::__construct($data);
+    public function __construct($db, $data){
+        parent::__construct($db, $data);
     }
 }
 

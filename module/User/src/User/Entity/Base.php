@@ -17,6 +17,7 @@ class Base implements InputFilterAwareInterface
 {
 
     protected $inputFilter;
+    protected $em;
 
     /**
      * @ORM\Id
@@ -26,7 +27,8 @@ class Base implements InputFilterAwareInterface
     protected $id;
     protected $rawdata;
 
-    public function __construct($data){
+    public function __construct($em, $data){
+        $this->em = $em;
         $this->getInputFilter();
         $this->set($data);
     }
@@ -56,7 +58,7 @@ class Base implements InputFilterAwareInterface
     */
     public function toArray() {
         $vars = get_object_vars($this);
-        unset($vars['rawdata'], $vars['inputFilter']);
+        unset($vars['rawdata'], $vars['inputFilter'], $vars['em']);
         foreach($vars as $key =>$val){
             if(is_object($val))
                 $vars[$key] = $val->toArray();
@@ -64,19 +66,27 @@ class Base implements InputFilterAwareInterface
         return $vars;
     }
 
+    public function __get($property){
+        return $this->property;
+    }
+
+    public function __set($property, $value){
+        $this->property = $value;
+    }
+
     public function set($data){
         $this->rawdata = $data;
 
         $this->inputFilter->setData($data);
         if(!$this->inputFilter->isValid()){
-            throw new \Exception("400");
+            throw new \User\Exception\DataValidationException($this->inputFilter->getMessages());
         }else{
             if(!empty($data)){
                 $vars = get_class_vars(get_class($this));
                 foreach($data as $key => $val){
                     if(is_array($val) && array_key_exists($key, $vars)){
                         $className = __NAMESPACE__."\\".$key;
-                        $val = new $className($val);
+                        $val = new $className($this->em, $val);
                     }
                     $this->$key = $val;
                 }

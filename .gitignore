@@ -9,6 +9,7 @@ config/autoload/*.local.php
 *.mo
 
 # Data
+data/*
 data/logs/
 data/cache/
 data/sessions/

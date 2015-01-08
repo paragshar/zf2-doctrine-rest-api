@@ -46,7 +46,8 @@ class UserController extends AbstractRestfulJsonController{
     }
 
     public function create($data){
-        $user = new \User\Entity\User($data);
+        $this->getEntityManager();
+        $user = new \User\Entity\User($this->em, $data);
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
         return new JsonModel($user->toArray());
