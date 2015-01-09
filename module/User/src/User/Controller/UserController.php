@@ -47,9 +47,12 @@ class UserController extends AbstractRestfulJsonController{
 
     public function create($data){
         $this->getEntityManager();
-        $user = new \User\Entity\User($this->em, $data);
+        $user = new \User\Entity\User($data);
+        $user->validate($this->em);
+        
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
+        
         return new JsonModel($user->toArray());
     }
 
@@ -57,7 +60,10 @@ class UserController extends AbstractRestfulJsonController{
         // Action used for PUT requests
         $user = $this->getEntityManager()->getRepository('User\Entity\User')->find($id);
         $user->set($data);
+        $user->validate($this->em);
+        
         $this->getEntityManager()->flush();
+        
         return new JsonModel($user->toArray());
     }
 
@@ -65,7 +71,9 @@ class UserController extends AbstractRestfulJsonController{
         // Action used for DELETE requests
         $user = $this->getEntityManager()->getRepository('User\Entity\User')->find($id);
         $this->getEntityManager()->remove($user);
+        
         $this->getEntityManager()->flush();
+        
         return new JsonModel($user->toArray());
     }
 }

@@ -38,9 +38,11 @@ class Module
         $response = $e->getResponse();
 
         $exception = $e->getParam('exception');
-        $status = $exception->getCode();
-        if($status == 400)
-            $response->setStatusCode(400);
+        if($exception){
+            $status = $exception->getCode();
+            if($status == 400)
+                $response->setStatusCode(400);
+        }
 
         $exceptionJson = array();
         if ($exception) {
@@ -53,7 +55,7 @@ class Module
             );
         }
         $message = 'An error occurred during execution; please try again later.';
-        if($status == 400)
+        if(!empty($status) && $status == 400)
             $message = $exception->validationErrors;
 
         $errorJson = array(
@@ -66,6 +68,7 @@ class Module
         }
 
         $model = new JsonModel(array('errors' => array($errorJson)));
+        // $model = new JsonModel(array());
 
         $e->setResult($model);
 

@@ -5,9 +5,6 @@ namespace User\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use Zend\InputFilter\InputFilter;
-use Zend\InputFilter\Factory as InputFilterFactory;
-use Zend\InputFilter\InputFilterAwareInterface;
-use Zend\InputFilter\InputFilterInterface;
 
 use User\Entity\Base;
 use User\Entity\Address;
@@ -30,6 +27,7 @@ class User extends Base
 
     /**
      * @ORM\Column(type="string")
+     * 
      */
     protected $lname;
 
@@ -39,7 +37,7 @@ class User extends Base
     protected $email;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", length=100)
      */
     protected $password;
 
@@ -55,15 +53,19 @@ class User extends Base
      * @return array
      */
     
-    public function __construct($em, $data){
-        parent::__construct($em, $data);
+    public function __construct($data){
+        parent::__construct($data);
     }
 
     public function getFullName(){
         return $this->fname . " " . $this->lname;
     }
 
-    public function getInputFilter(){
+    public function getAddress(){
+        return $this->address;
+    }
+
+    public function getInputFilter($em){
         if (!$this->inputFilter) {
             $inputFilter = new InputFilter();
  
@@ -79,7 +81,7 @@ class User extends Base
                         'name'    => 'StringLength',
                         'options' => array(
                             'encoding' => 'UTF-8',
-                            'min'      => 1,
+                            'min'      => 5,
                             'max'      => 100,
                         ),
                     ),
@@ -138,7 +140,7 @@ class User extends Base
                     array(
                         'name'  => 'User\Validator\NoEntityExists',
                         'options'=>array(
-                            'entityManager' =>$this->em,
+                            'entityManager' =>$em,
                             'class' => 'User\Entity\User',
                             'property' => 'email',
                             'exclude' => array(

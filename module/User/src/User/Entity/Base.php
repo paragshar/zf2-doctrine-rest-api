@@ -3,21 +3,16 @@
 namespace User\Entity;
   
 use Doctrine\ORM\Mapping as ORM;
-
 use Zend\InputFilter\InputFilter;
-use Zend\InputFilter\Factory as InputFilterFactory;
-use Zend\InputFilter\InputFilterAwareInterface;
-use Zend\InputFilter\InputFilterInterface;
   
 /**
  * Base Entity
  * 
  */
-class Base implements InputFilterAwareInterface
+class Base
 {
 
     protected $inputFilter;
-    protected $em;
 
     /**
      * @ORM\Id
@@ -27,9 +22,7 @@ class Base implements InputFilterAwareInterface
     protected $id;
     protected $rawdata;
 
-    public function __construct($em, $data){
-        $this->em = $em;
-        $this->getInputFilter();
+    public function __construct($data){
         $this->set($data);
     }
 
@@ -41,11 +34,7 @@ class Base implements InputFilterAwareInterface
         return $this->id;
     }
 
-    public function setInputFilter(InputFilterInterface $inputFilter){
-
-    }
-
-    public function getInputFilter(){
+    public function getInputFilter($em){
         if (!$this->inputFilter) {
             $this->inputFilter = new InputFilter();
         }
@@ -58,7 +47,13 @@ class Base implements InputFilterAwareInterface
     */
     public function toArray() {
         $vars = get_object_vars($this);
-        unset($vars['rawdata'], $vars['inputFilter'], $vars['em']);
+        unset(
+            $vars['rawdata'], 
+            $vars['inputFilter'],
+            $vars['__initializer__'], 
+            $vars['__cloner__'], 
+            $vars['__isInitialized__']
+        );
         foreach($vars as $key =>$val){
             if(is_object($val))
                 $vars[$key] = $val->toArray();
@@ -66,32 +61,55 @@ class Base implements InputFilterAwareInterface
         return $vars;
     }
 
-    public function __get($property){
-        return $this->property;
-    }
+    public function validate($em = null, $throwException = true){
+        $errorMessages = array();
+        $vars = get_object_vars($this);
+        foreach($vars as $key =>$val){
+            if(is_object($val) && method_exists($this->$key, "validate")){
+                $entity = $this->$key;
+                $result = $entity->validate($em, false)[0];
+                if($result !== true){
+                    array_push($errorMessages, $result);
+                }
+                    
+            }
+        }
 
-    public function __set($property, $value){
-        $this->property = $value;
+        $this->getInputFilter($em);
+        $this->inputFilter->setData($this->toArray());
+        if(!$this->inputFilter->isValid()){
+            $cls = str_ireplace("DoctrineORMModule\\Proxy\\__CG__\\", "", get_class($this));
+            array_push($errorMessages, array($cls=>$this->inputFilter->getMessages()));
+        }
+            
+        
+        if(count($errorMessages) > 0){
+            if($throwException)
+                throw new \User\Exception\DataValidationException($errorMessages);
+            else
+                return $errorMessages;
+        }else
+            return true;
     }
 
     public function set($data){
-        $this->rawdata = $data;
-
-        $this->inputFilter->setData($data);
-        if(!$this->inputFilter->isValid()){
-            throw new \User\Exception\DataValidationException($this->inputFilter->getMessages());
-        }else{
-            if(!empty($data)){
-                $vars = get_class_vars(get_class($this));
-                foreach($data as $key => $val){
-                    if(is_array($val) && array_key_exists($key, $vars)){
+        $this->rawdata = $data;        
+        if(!empty($data)){
+            $vars = get_class_vars(get_class($this));
+            foreach($data as $key => $val){
+                if(is_array($val) && array_key_exists($key, $vars)){
+                    if(empty($this->$key)){
                         $className = __NAMESPACE__."\\".$key;
-                        $val = new $className($this->em, $val);
+                        $val = new $className($val);
+                    }else{
+                        $obj = $this->$key;
+                        $obj->set($val);
+                        $val = $obj;
                     }
-                    $this->$key = $val;
+                    
                 }
+                $this->$key = $val;
             }
-        }
-        
+        } 
     }
 }
