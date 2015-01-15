@@ -33,7 +33,7 @@ example.
 
 Creating database using Doctrine Annotations
 ------------
-Assuming that you have installed all the dependencies of this application by running "composer install", and having created a doctrine.local.php (structure similar to doctrine.global.php) with database configurations.
+Assuming that you have installed all the dependencies of this application by running "composer install", and having created a doctrine.local.php (structure similar to doctrine.global.php) in config/autoload directory with database configurations.
 
 Run the following command from the root of your application. This command will read annotations present in your entities, and correspondingly create tables in the database specified in the config file (doctrine.local.php)
 
