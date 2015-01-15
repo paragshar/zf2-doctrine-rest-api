@@ -30,3 +30,11 @@ available.)
 
 You would then invoke `composer` to install dependencies per the previous
 example.
+
+Creating database using Doctrine Annotations
+------------
+Assuming that you have installed all the dependencies of this application by running "composer install", and having created a doctrine.local.php (structure similar to doctrine.global.php) with database configurations.
+
+Run the following command from the root of your application. This command will read annotations present in your entities, and correspondingly create tables in the database specified in the config file (doctrine.local.php)
+
+./vendor/bin/doctrine-module orm:schema-tool:create
