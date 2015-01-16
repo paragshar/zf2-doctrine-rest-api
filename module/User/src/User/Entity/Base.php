@@ -67,9 +67,9 @@ class Base
         foreach($vars as $key =>$val){
             if(is_object($val) && method_exists($this->$key, "validate")){
                 $entity = $this->$key;
-                $result = $entity->validate($em, false)[0];
+                $result = $entity->validate($em, false);
                 if($result !== true){
-                    array_push($errorMessages, $result);
+                    array_push($errorMessages, $result[0]);
                 }
                     
             }
